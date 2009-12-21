@@ -37,7 +37,7 @@ EKSoundDidFinishPlayingNotification = @"EKSoundDidFinishPlayingNotification";
 		
 		var timer = [CPTimer scheduledTimerWithTimeInterval:0.25 target:self selector:@selector(updateCurrentTime) userInfo:nil repeats:YES];
 		
-		_sound.addEventListener('ended', function() {
+		_sound.addEventListener("ended", function() {
 			if (!_loops) {
 				[self stop];
 				[self _postNotificationDidFinishPlaying];
