@@ -40,7 +40,7 @@ The class can be controlled by the following methods:
 
 	[sound setLoops:YES];
 	
-	[sound setVlume:1.0];
+	[sound setVolume:1.0];
 	
 	[sound setCurrentTime:87];
 	
