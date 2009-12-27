@@ -36,6 +36,7 @@ EKSoundDidFinishPlayingNotification = @"EKSoundDidFinishPlayingNotification";
 	BOOL		_isPlaying;
 	BOOL		_isPaused;
 	BOOL		_loops;
+	BOOL		_isFlash;
 	float		_volume;
 	float		_duration;
 	float		_currentTime;
@@ -43,49 +44,84 @@ EKSoundDidFinishPlayingNotification = @"EKSoundDidFinishPlayingNotification";
 
 + (EKSound)playSoundWithContentsOfFile:(CPString)aFilename
 {
-	var sound = [[self alloc] initWithContentsOfFile:aFilename];
+	var sound = [[self alloc] initWithContentsOfFile:aFilename autoBuffer:YES];
 	[sound play];
 	
 	return sound;
 }
 
-- (id)initWithContentsOfFile:(CPString)aFilename
+- (id)initWithContentsOfFile:(CPString)aFilename autoBuffer:(BOOL)autobuffer
 {
 	self = [super init];
 	
-	if(self) {
+	if (self) {
+		
+		function filenameWithoutExtension(aFilename) {
+			var filename = aFilename.match(/(.*[\/\\][^\/\\]+)\.\w+$/);
+			return filename[1];
+		}
+
+		var filename = filenameWithoutExtension(aFilename);
+		
 		_sound = document.createElement("audio");
-		_sound.src = aFilename;
-		_sound.autobuffer = "autobuffer";
-		document.body.appendChild(_sound);
 		
-		[self setVolume:1.0];
-		
-		_duration = _sound.duration;
-		_loops = NO;
-		
-		var timer = [CPTimer scheduledTimerWithTimeInterval:0.25 target:self selector:@selector(updateCurrentTime) userInfo:nil repeats:YES];
-		
-		_sound.addEventListener("ended", function() {
-			if (!_loops) {
-				[self stop];
+		function onEnded() {
+			[self stop];
+
+			if (!_loops)
 				[self _postNotificationDidFinishPlaying];
-			} else {
-				[self stop];
+			else
 				[self play];
+		}
+		
+		// Check for audio tag support
+		if (!!(_sound.canPlayType)) {
+			_isFlash = NO;
+			
+			if (autobuffer)
+				_sound.autobuffer = "autobuffer";
+
+			// Checks what type of files the current browser can play in the audio tag
+			if (_sound.canPlayType) {
+				canPlayOgg = ("no" != _sound.canPlayType("audio/ogg")) && ("" != _sound.canPlayType("audio/ogg"));
+				canPlayMp3 = ("no" != _sound.canPlayType("audio/mpeg")) && ("" != _sound.canPlayType("audio/mpeg"));
+				canPlayWav = ("no" != _sound.canPlayType("audio/wave")) && ("" != _sound.canPlayType("audio/wave"));
 			}
-		} );
+
+			if (canPlayOgg)
+				_sound.src = filename + ".ogg";
+			else if (canPlayMp3)
+				_sound.src = filename + ".mp3";
+			else if (canPlayWav)
+				_sound.src = filename + ".wav";
+
+			document.body.appendChild(_sound);
+			
+			_duration = _sound.duration;
+			
+			_sound.addEventListener("ended", onEnded, false);
+		}
+		else {
+			_isFlash = YES;
+			// To-do: implement flash fallback
+		}
+
+		[self setVolume:1.0];
+
+		_loops = NO;
+
+		var timer = [CPTimer scheduledTimerWithTimeInterval:0.25 target:self selector:@selector(updateCurrentTime) userInfo:nil repeats:YES];
 	}
+	
 	
 	return self;
 }
 
 - (BOOL)play
 {
-	if (!_isPlaying) {
+	if ((!_isPlaying) && (!_isPaused)) {
 		_sound.play();
 		_isPlaying = YES;
-		_isPaused = NO;
 		return YES;
 	} else {
 		return NO;
@@ -107,8 +143,8 @@ EKSoundDidFinishPlayingNotification = @"EKSoundDidFinishPlayingNotification";
 - (BOOL)stop
 {
 	if ((_isPlaying)||(_isPaused)) {
-		[self pause];
-		[self setCurrentTime:0];
+		_sound.pause();
+		[self setCurrentTime:0.0];
 		_isPlaying = NO;
 		_isPaused = NO;
 		return YES;
@@ -121,6 +157,7 @@ EKSoundDidFinishPlayingNotification = @"EKSoundDidFinishPlayingNotification";
 {
 	if (_isPaused) {
 		[self play];
+		_isPaused = NO;
 		return YES;
 	} else {
 		return NO;
@@ -150,7 +187,11 @@ EKSoundDidFinishPlayingNotification = @"EKSoundDidFinishPlayingNotification";
 - (void)setVolume:(float)aVolume
 {
 	_volume = aVolume;
-	_sound.volume = _volume;
+	
+	if (_isFlash)
+		_sound.set("volume", aVolume);
+	else
+		_sound.volume = aVolume;
 }
 
 - (int)volume
@@ -160,13 +201,19 @@ EKSoundDidFinishPlayingNotification = @"EKSoundDidFinishPlayingNotification";
 
 - (void)updateCurrentTime
 {
-	_currentTime = _sound.currentTime;
+	if (_isFlash)
+		_currentTime = _sound.get("currentTime");
+	else
+		_currentTime = _sound.currentTime;
 }
 
 - (void)setCurrentTime:(float)currentTime
 {
 	_currentTime = currentTime
-	_sound.currentTime = _currentTime;
+	if (_isFlash)
+		_sound.set("currentTime", currentTime);
+	else
+		_sound.currentTime = currentTime;
 }
 
 - (float)currentTime
@@ -177,6 +224,11 @@ EKSoundDidFinishPlayingNotification = @"EKSoundDidFinishPlayingNotification";
 - (float)duration
 {
 	return _duration;
+}
+
+- (BOOL)isFlash
+{
+	return _isFlash;
 }
 
 - (void)setDelegate:(id)delegate
@@ -206,3 +258,4 @@ EKSoundDidFinishPlayingNotification = @"EKSoundDidFinishPlayingNotification";
 
 
 @end
+
