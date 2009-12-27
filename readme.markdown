@@ -16,7 +16,7 @@ Simply import the file in your application's AppController or any other class:
 ## Usage
 
 Because of the varying file support of the main browsers you have to ensure that there are three different versions of your audio files, namely *.mp3, *.ogg and *.wav.
-EKSound will check which audio file is supported in the current browser and choose it. It doesn't matter what file type you use in the `nitWithContentsOfFile` method. In the example below I chose the mp3 format but I could also choose the ogg or wav format.
+EKSound will check which audio file is supported in the current browser and choose it. It doesn't matter what file type you use in the `initWithContentsOfFile` method. In the example below I chose the mp3 format but I could also choose the ogg or wav format.
 
 The `autoBuffer` method provides when the audio file should be loaded. `YES` would buffer the file immediately, `NO` would buffer it when initiating the playback.
 

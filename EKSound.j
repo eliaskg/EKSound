@@ -31,7 +31,7 @@ EKSoundDidFinishPlayingNotification = @"EKSoundDidFinishPlayingNotification";
 
 @implementation EKSound : CPObject
 {
-	id			_delegate;
+	id		_delegate;
 	DOMElement	_sound;
 	BOOL		_isPlaying;
 	BOOL		_isPaused;
