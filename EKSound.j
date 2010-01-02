@@ -103,7 +103,7 @@ EKSoundDidFinishPlayingNotification = @"EKSoundDidFinishPlayingNotification";
 		}
 		else {
 			_isFlash = YES;
-			// To-do: implement flash fallback
+			// To-do: implement flash fall back
 		}
 
 		[self setVolume:1.0];
@@ -187,11 +187,7 @@ EKSoundDidFinishPlayingNotification = @"EKSoundDidFinishPlayingNotification";
 - (void)setVolume:(float)aVolume
 {
 	_volume = aVolume;
-	
-	if (_isFlash)
-		_sound.set("volume", aVolume);
-	else
-		_sound.volume = aVolume;
+	_sound.volume = aVolume;
 }
 
 - (int)volume
@@ -201,19 +197,13 @@ EKSoundDidFinishPlayingNotification = @"EKSoundDidFinishPlayingNotification";
 
 - (void)updateCurrentTime
 {
-	if (_isFlash)
-		_currentTime = _sound.get("currentTime");
-	else
-		_currentTime = _sound.currentTime;
+	_currentTime = _sound.currentTime;
 }
 
 - (void)setCurrentTime:(float)currentTime
 {
 	_currentTime = currentTime
-	if (_isFlash)
-		_sound.set("currentTime", currentTime);
-	else
-		_sound.currentTime = currentTime;
+	_sound.currentTime = currentTime;
 }
 
 - (float)currentTime
@@ -255,7 +245,4 @@ EKSoundDidFinishPlayingNotification = @"EKSoundDidFinishPlayingNotification";
     [[CPNotificationCenter defaultCenter] postNotificationName:EKSoundDidFinishPlayingNotification object:self];
 }
 
-
-
 @end
-
